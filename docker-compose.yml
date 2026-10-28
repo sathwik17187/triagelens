@@ -1,0 +1,50 @@
+services:
+  # TriageLens Backend (FastAPI, Python 3.12)
+  triagelens-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: triagelens-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///triagelens.db
+      - FLAGD_PATH=/app/otel-demo/src/flagd/demo.flagd.json
+      - PROMETHEUS_URL=http://prometheus:9090
+      - JAEGER_URL=http://jaeger:16686
+      - OPENSEARCH_URL=http://opensearch:9200
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_MODEL=qwen2.5:0.5b
+    volumes:
+      - ./otel-demo/src/flagd:/app/otel-demo/src/flagd
+      - triagelens_data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - ollama
+
+  # TriageLens Frontend (React + Vite + TypeScript)
+  triagelens-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: triagelens-frontend
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    depends_on:
+      - triagelens-backend
+
+  # Ollama Local LLM Engine
+  ollama:
+    image: ollama/ollama:latest
+    container_name: triagelens-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  triagelens_data:
+  ollama_models:
+

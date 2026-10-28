@@ -1,0 +1,14 @@
+# docker-compose.override.yml for unifying TriageLens with the OpenTelemetry Demo mesh
+services:
+  triagelens-backend:
+    networks:
+      - default
+
+  triagelens-frontend:
+    networks:
+      - default
+
+  ollama:
+    networks:
+      - default
+
